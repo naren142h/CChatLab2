@@ -31,7 +31,7 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 handle(St, {join, Channel}) ->
     % TODO: Implement this function
     % {reply, ok, St} ;
-    InsideChannel = lists:users(Channel, St#client_st.croom),
+    InsideChannel = lists:member(Channel, St#client_st.croom),
     if
         St#client_st.server == "" ->
             {reply, {error, user_is_not_connected, "user is not connected to the server"}, St};
@@ -54,7 +54,7 @@ handle(St, {join, Channel}) ->
 handle(St, {leave, Channel}) ->
     % TODO: Implement this function
     % {reply, ok, St} ;
-    InsideChannel = lists:users(Channel, St#client_st.croom),
+    InsideChannel = lists:member(Channel, St#client_st.croom),
     if 
         not InsideChannel ->
             {reply, {error, user_has_not_joined, "Cannot leave channel you're not part of"}, St};
@@ -76,7 +76,7 @@ handle(St, {leave, Channel}) ->
 handle(St, {message_send, Channel, Msg}) ->
     % TODO: Implement this function
     % {reply, ok, St} ;
-    InsideChannel = lists:users(Channel, St#client_st.croom),
+    InsideChannel = lists:member(Channel, St#client_st.croom),
     if 
         not InsideChannel ->
             {reply, {error, user_has_not_joined, "Message cannot be sent to the channel you're not part of"}, St};
