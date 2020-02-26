@@ -28,21 +28,34 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 
 % Join channel
 handle(St, {join, Channel}) ->
-    % TODO: Implement this function
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "join not implemented"}, St} ;
+  % join user to channel
+  case catch(genserver:request(St#client_st.server, {join, Channel, self()})) of
+      {'EXIT', _} ->
+      	{reply, {error, server_not_reached, "server unreachable"}, St};    ok ->
+      	{reply, ok, St};
+   error ->
+      	{reply, {error, user_already_joined, "user already joined"}, St}
+  end;
 
 % Leave channel
 handle(St, {leave, Channel}) ->
-    % TODO: Implement this function
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "leave not implemented"}, St} ;
+    case catch(genserver:request(list_to_atom(Channel), {leave, self()})) of
+		{'EXIT', _} ->
+        {reply, {error, server_not_reached, "server unreachable"}, St};
+      ok ->
+        {reply, ok, St};
+      error ->
+        {reply, {error, user_not_joined, "user not in channel"}, St}
+    end;
 
 % Sending message (from GUI, to channel)
 handle(St, {message_send, Channel, Msg}) ->
-    % TODO: Implement this function
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "message sending not implemented"}, St} ;
+  case (catch genserver:request(list_to_atom(Channel), {message_send, St#client_st.nick, Msg, self()})) of
+      {'EXIT', _} ->
+          {reply, {error, server_not_reached, "server unreachable"}, St};
+      message_send -> {reply, ok, St};
+      error -> {reply, {error, user_not_joined, "user not in channel"}, St}
+  end;
 
 % This case is only relevant for the distinction assignment!
 % Change nick (no check, local only)
